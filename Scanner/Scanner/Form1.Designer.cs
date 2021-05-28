@@ -87,7 +87,7 @@ namespace Scanner
         "Omw",
         "SIMww",
         "Chji",
-        "SeriestI",
+        "Seriestl",
         "IMwf",
         "SIMwf",
         "NOReturn ",
