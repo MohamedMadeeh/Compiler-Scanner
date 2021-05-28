@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -38,21 +31,22 @@ namespace Scanner
                 }
             }
             var lexer = new Lexer(code);
+            
             while (true)
             {
-                
+
                 var token = lexer.NextToken();
-                if (token == null) 
+                // Condition if the token return null (Pressing Enter Key to enter new line)
+                if (token == null)
                 {
                     LineNumber++;
                     NoOfLexeme = 1;
-                    continue; 
+                    continue;
                 }
+
                 if (token.Kind == SyntaxKind.EndOfFileToken)
                     break;
-                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexem No Line: {NoOfLexeme++} in Line Number: {LineNumber}";
-                if (token.Value != null)
-                    textBox1.Text += $"{token.Value}";
+                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexeme No: {NoOfLexeme++} in Line Number: {LineNumber}";
                 textBox1.Text += Environment.NewLine;
             }
         }
@@ -79,9 +73,7 @@ namespace Scanner
 
                 if (token.Kind == SyntaxKind.EndOfFileToken)
                     break;
-                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexems{NoOfLexeme++} in Line Number {LineNumber}";
-                if (token.Value != null)
-                    textBox1.Text += $"{token.Value}";
+                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexeme No: {NoOfLexeme++} in Line Number: {LineNumber}";
                 textBox1.Text += Environment.NewLine;
             }
         }
@@ -122,17 +114,15 @@ namespace Scanner
 
     class SyntaxToken
     {
-        public SyntaxToken(SyntaxKind kind, int position, string text, object value)
+        public SyntaxToken(SyntaxKind kind, int position, string text)
         {
             Kind = kind;
             Position = position;
             Text = text;
-            Value = value;
         }
         public SyntaxKind Kind { get; }
         public int Position { get; }
         public string Text { get; }
-        public object Value { get; }
     }
 
     class Lexer
@@ -164,15 +154,18 @@ namespace Scanner
         {
 
             int i = 0;
-            if(_position >= _text.Length)
+            if (_position >= _text.Length)
             {
-                return new SyntaxToken(SyntaxKind.EndOfFileToken, _position, "\0", null);
+                return new SyntaxToken(SyntaxKind.EndOfFileToken, _position, "\0");
             }
-
             // Condition for new line (Pressing Enter Key)
-            if (Current == LF || Current == CR) {
+            // CR => moves the cursor to the beginning of the line without advancing to the next line
+            // LF => moves the cursor down to the next line without returning to the beginning of the line
+            if (Current == CR)
                 Next();
-                return null; 
+            if (Current == LF) {
+                Next();
+                return null;
             }
 
             if (isWhiteSpace(Current))
@@ -184,7 +177,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 //int.TryParse(text, out var value);
-                return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text, null);
+                return new SyntaxToken(SyntaxKind.WhiteSpaceToken, start, text);
             }
 
             if (isDigit(Current))
@@ -196,22 +189,22 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 //int.TryParse(text, out var value);
-                return new SyntaxToken(SyntaxKind.Constant, start, text, null);
+                return new SyntaxToken(SyntaxKind.Constant, start, text);
             }
 
 
 
             if (isTokenDelimiter(Current) == 1)
-                return new SyntaxToken(SyntaxKind.TokenDelimiter, _position++, "$", null);
+                return new SyntaxToken(SyntaxKind.TokenDelimiter, _position++, "$");
             else if (isTokenDelimiter(Current) == 2)
-                return new SyntaxToken(SyntaxKind.LineDelimiter, _position++, ".", null);
+                return new SyntaxToken(SyntaxKind.LineDelimiter, _position++, ".");
 
 
             else if (isArithmeticOperation(Current))
-                return new SyntaxToken(SyntaxKind.ArithmeticOperation, _position++, _text.Substring(_position - 1, 1), null);
+                return new SyntaxToken(SyntaxKind.ArithmeticOperation, _position++, _text.Substring(_position - 1, 1));
 
             else if (isBraces(Current))
-                return new SyntaxToken(SyntaxKind.Braces, _position++, _text.Substring(_position - 1, 1), null);
+                return new SyntaxToken(SyntaxKind.Braces, _position++, _text.Substring(_position - 1, 1));
 
 
             if (isKeyWord(Current, i, "Yesif-Otherwise"))
@@ -226,7 +219,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Yesif-Otherwise")
-                    return new SyntaxToken(SyntaxKind.Condition, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Condition, start, text);
                 else
                 {
                     _position = start;
@@ -245,7 +238,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if(text == "Omw")
-                    return new SyntaxToken(SyntaxKind.Integer, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Integer, start, text);
                 else
                 {
                     _position = start;
@@ -264,7 +257,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "SIMww")
-                    return new SyntaxToken(SyntaxKind.SInteger, start, text, null);
+                    return new SyntaxToken(SyntaxKind.SInteger, start, text);
                 else
                 {
                     _position = start;
@@ -283,7 +276,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Chji")
-                    return new SyntaxToken(SyntaxKind.Character, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Character, start, text);
                 else
                 {
                     _position = start;
@@ -303,7 +296,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Seriestl")
-                    return new SyntaxToken(SyntaxKind.String, start, text, null);
+                    return new SyntaxToken(SyntaxKind.String, start, text);
                 else
                 {
                     _position = start;
@@ -324,7 +317,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "IMwf")
-                    return new SyntaxToken(SyntaxKind.Float, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Float, start, text);
                 else
                 {
                     _position = start;
@@ -345,7 +338,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if(text == "SIMwf")
-                    return new SyntaxToken(SyntaxKind.SFloat, start, text, null);
+                    return new SyntaxToken(SyntaxKind.SFloat, start, text);
                 else
                 {
                     _position = start;
@@ -365,7 +358,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "NOReturn")
-                    return new SyntaxToken(SyntaxKind.Void, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Void, start, text);
                 else
                 {
                     _position = start;
@@ -385,7 +378,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "RepeatWhen")
-                    return new SyntaxToken(SyntaxKind.Loop, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Loop, start, text);
                 else
                 {
                     _position = start;
@@ -405,7 +398,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Reiterate")
-                    return new SyntaxToken(SyntaxKind.Loop, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Loop, start, text);
                 else
                 {
                     _position = start;
@@ -425,7 +418,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "GetBack")
-                    return new SyntaxToken(SyntaxKind.Return, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Return, start, text);
                 else
                 {
                     _position = start;
@@ -445,7 +438,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "OutLoop")
-                    return new SyntaxToken(SyntaxKind.Break, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Break, start, text);
                 else
                 {
                     _position = start;
@@ -465,7 +458,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Loli")
-                    return new SyntaxToken(SyntaxKind.Struct, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Struct, start, text);
                 else
                 {
                     _position = start;
@@ -485,7 +478,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "&&")
-                    return new SyntaxToken(SyntaxKind.LogicOperators, start, text, null);
+                    return new SyntaxToken(SyntaxKind.LogicOperators, start, text);
                 else
                 {
                     _position = start;
@@ -505,7 +498,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "||")
-                    return new SyntaxToken(SyntaxKind.LogicOperators, start, text, null);
+                    return new SyntaxToken(SyntaxKind.LogicOperators, start, text);
                 else
                 {
                     _position = start;
@@ -525,7 +518,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "->")
-                    return new SyntaxToken(SyntaxKind.AccessOperator, start, text, null);
+                    return new SyntaxToken(SyntaxKind.AccessOperator, start, text);
                 else
                 {
                     _position = start;
@@ -545,7 +538,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Start")
-                    return new SyntaxToken(SyntaxKind.Start, start, text, null);
+                    return new SyntaxToken(SyntaxKind.Start, start, text);
                 else
                 {
                     _position = start;
@@ -565,7 +558,7 @@ namespace Scanner
                 var length = _position - start;
                 var text = _text.Substring(start, length);
                 if (text == "Last")
-                    return new SyntaxToken(SyntaxKind.End, start, text, null);
+                    return new SyntaxToken(SyntaxKind.End, start, text);
                 else
                 {
                     _position = start;
@@ -581,7 +574,7 @@ namespace Scanner
                 {
                     string matchRlationalOp = "=" + Current;
                     if (isRelationalOp(matchRlationalOp))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp);
                 }
                 else _position--;
             }
@@ -593,7 +586,7 @@ namespace Scanner
                 {
                     string matchRlationalOp = "!" + Current;
                     if (isRelationalOp(matchRlationalOp))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp);
                 }
                 else _position--;
             }
@@ -605,7 +598,7 @@ namespace Scanner
                 {
                     string matchRlationalOp = "<" + Current;
                     if (isRelationalOp(matchRlationalOp))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp);
                 }
                 else _position--;
             }
@@ -617,25 +610,25 @@ namespace Scanner
                 {
                     string matchRlationalOp = ">" + Current;
                     if (isRelationalOp(matchRlationalOp))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp);
                 }
                 else _position--;
             }
 
             if (isKeyWord(Current, i, "~"))
-                return new SyntaxToken(SyntaxKind.LogicOperators, _position++, "~", null);
+                return new SyntaxToken(SyntaxKind.LogicOperators, _position++, "~");
 
             if (isKeyWord(Current, i, "="))
             {
-                return new SyntaxToken(SyntaxKind.AssignmentOperator, _position++, "=", null);
+                return new SyntaxToken(SyntaxKind.AssignmentOperator, _position++, "=");
             }
             if(isRelationalOp(Char.ToString(Current)))
-                return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, _text.Substring(_position - 1, 1), null);
+                return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, _text.Substring(_position - 1, 1));
 
             if (isQuotationMark(Char.ToString(Current)))
-                return new SyntaxToken(SyntaxKind.QuotationMark, _position++, _text.Substring(_position - 1, 1), null);
+                return new SyntaxToken(SyntaxKind.QuotationMark, _position++, _text.Substring(_position - 1, 1));
 
-            return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
+            return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1));
         }
         
 
