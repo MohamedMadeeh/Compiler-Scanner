@@ -20,6 +20,8 @@ namespace Scanner
             InitializeComponent();
         }
         public string code;
+        public int LineNumber = 1;
+        public int NoOfLexeme = 1;
         private void button2_Click(object sender, EventArgs e)
         {
             
@@ -38,11 +40,17 @@ namespace Scanner
             var lexer = new Lexer(code);
             while (true)
             {
+                
                 var token = lexer.NextToken();
-                if (token == null) continue;
+                if (token == null) 
+                {
+                    LineNumber++;
+                    NoOfLexeme = 1;
+                    continue; 
+                }
                 if (token.Kind == SyntaxKind.EndOfFileToken)
                     break;
-                textBox1.Text += $"{token.Kind}: '{token.Text}'";
+                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexem No Line: {NoOfLexeme++} in Line Number: {LineNumber}";
                 if (token.Value != null)
                     textBox1.Text += $"{token.Value}";
                 textBox1.Text += Environment.NewLine;
@@ -62,11 +70,16 @@ namespace Scanner
             {
                 var token = lexer.NextToken();
                 // Condition if the token return null (Pressing Enter Key to enter new line)
-                if (token == null) continue;
+                if (token == null) 
+                {
+                    LineNumber++;
+                    NoOfLexeme = 1;
+                    continue; 
+                }
 
                 if (token.Kind == SyntaxKind.EndOfFileToken)
                     break;
-                textBox1.Text += $"{token.Kind}: '{token.Text}'";
+                textBox1.Text += $"{token.Kind}: '{token.Text}' #Lexems{NoOfLexeme++} in Line Number {LineNumber}";
                 if (token.Value != null)
                     textBox1.Text += $"{token.Value}";
                 textBox1.Text += Environment.NewLine;
@@ -566,9 +579,9 @@ namespace Scanner
                 Next();
                 if (Current == '=')
                 {
-                    string test = "=" + Current;
-                    if (isRelationalOp(test))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, test, null);
+                    string matchRlationalOp = "=" + Current;
+                    if (isRelationalOp(matchRlationalOp))
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
                 }
                 else _position--;
             }
@@ -578,9 +591,9 @@ namespace Scanner
                 Next();
                 if (Current == '=')
                 {
-                    string test = "!" + Current;
-                    if (isRelationalOp(test))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, test, null);
+                    string matchRlationalOp = "!" + Current;
+                    if (isRelationalOp(matchRlationalOp))
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
                 }
                 else _position--;
             }
@@ -590,9 +603,9 @@ namespace Scanner
                 Next();
                 if (Current == '=')
                 {
-                    string test = "<" + Current;
-                    if (isRelationalOp(test))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, test, null);
+                    string matchRlationalOp = "<" + Current;
+                    if (isRelationalOp(matchRlationalOp))
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
                 }
                 else _position--;
             }
@@ -602,9 +615,9 @@ namespace Scanner
                 Next();
                 if (Current == '=')
                 {
-                    string test = ">" + Current;
-                    if (isRelationalOp(test))
-                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, test, null);
+                    string matchRlationalOp = ">" + Current;
+                    if (isRelationalOp(matchRlationalOp))
+                        return new SyntaxToken(SyntaxKind.RelationalOperators, _position++, matchRlationalOp, null);
                 }
                 else _position--;
             }
@@ -680,7 +693,5 @@ namespace Scanner
             if (location < str.Length && character == str[location]) return true;
             return false;
         }
-        
-       
     }
 }
